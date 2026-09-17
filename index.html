@@ -215,11 +215,11 @@
         .gps-box { 
             background: #e8dbc8; 
             border: 1px solid #d8c7b0; 
-            padding: 14px 16px; 
+            padding: 10px 12px; 
             border-radius: 12px; 
-            font-size: 13px; 
+            font-size: 12px; 
             color: #3b2c1e; 
-            margin-bottom: 12px; 
+            margin-bottom: 10px; 
         }
 
         .sync-badge { font-size: 11px; padding: 3px 8px; border-radius: 12px; background: #ef4444; color: #fff; display: inline-block; margin-left: 6px; }
@@ -332,39 +332,25 @@
             <button id="toggleQrBtn" class="btn warning" onclick="toggleQrScanner()">開啟相機掃描 QR Code</button>
         </div>
 
-        <!-- 巡檢項目資料 -->
         <div class="card">
             <h3>巡檢項目資料</h3>
 
             <div class="label-container">
                 <span class="num-badge">1</span>
-                <span class="field-label">技術員姓名</span>
-            </div>
-            <input type="text" id="serviceTechNameInput" class="input" placeholder="請輸入技術員姓名 (選填)">
-
-            <div class="label-container">
-                <span class="num-badge">2</span>
-                <span class="field-label">巡檢 GPS 定位</span>
-            </div>
-            <div id="serviceGpsStatus" class="gps-box">正在獲取 GPS 定位資訊...</div>
-            <button class="btn secondary" style="padding:8px; font-size:12px; margin-bottom:12px;" onclick="getGpsLocation('serviceGpsStatus', 'service')">🔄 重新整理 GPS 定位</button>
-
-            <div class="label-container">
-                <span class="num-badge">3</span>
                 <span class="field-label">場地名稱</span>
             </div>
             <input type="text" id="siteSelect" class="input" list="siteList" placeholder="請選擇或打字搜尋場地">
             <datalist id="siteList"></datalist>
 
             <div class="label-container">
-                <span class="num-badge">4</span>
+                <span class="num-badge">2</span>
                 <span class="field-label">設備名稱</span>
             </div>
             <input type="text" id="machineSelect" class="input" list="machineList" placeholder="請選擇或打字搜尋設備">
             <datalist id="machineList"></datalist>
 
             <div class="label-container">
-                <span class="num-badge">5</span>
+                <span class="num-badge">3</span>
                 <span class="field-label">機器編號</span>
                 <span class="required">*</span>
             </div>
@@ -372,7 +358,7 @@
             <datalist id="machineIdList"></datalist>
 
             <div class="label-container">
-                <span class="num-badge">6</span>
+                <span class="num-badge">4</span>
                 <span class="field-label">工作編號</span>
             </div>
             <input type="text" id="workOrderInput" class="input" placeholder="例如：WO-2026-001">
@@ -381,7 +367,7 @@
 
         <div class="card">
             <div class="label-container" style="margin-top:0;">
-                <span class="num-badge">7</span>
+                <span class="num-badge">5</span>
                 <span class="field-label">現場照片</span>
                 <span class="required">*</span>
             </div>
@@ -399,8 +385,22 @@
     <!-- 相機連續拍攝頁面 -->
     <div id="camera" class="screen">
         <div class="card">
-            <h3>拍攝相片</h3>
-            <video id="cameraFeed" autoplay playsinline style="width:100%; height:200px; background:#0f172a; border-radius:10px;"></video>
+            <h3>📷 拍攝相片與技術員簽到</h3>
+            
+            <div class="label-container" style="margin-top: 0;">
+                <span class="num-badge">👤</span>
+                <span class="field-label">技術員姓名</span>
+            </div>
+            <input type="text" id="cameraTechNameInput" class="input" placeholder="請輸入技術員姓名 (選填)">
+
+            <div class="label-container">
+                <span class="num-badge">📍</span>
+                <span class="field-label">拍攝 GPS 定位</span>
+            </div>
+            <div id="cameraGpsStatus" class="gps-box">正在獲取 GPS 定位資訊...</div>
+            <button class="btn secondary" style="padding:6px; font-size:11px; margin-bottom:12px;" onclick="getGpsLocation('cameraGpsStatus', 'service')">🔄 重新整理 GPS 定位</button>
+
+            <video id="cameraFeed" autoplay playsinline style="width:100%; height:200px; background:#0f172a; border-radius:10px; margin-top:6px;"></video>
             <canvas id="cameraCanvas" hidden></canvas>
             
             <div class="label-container">
@@ -581,14 +581,15 @@
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
         if (pageId === 'home') checkUnsyncedCount();
-        if (pageId === 'service') {
-            refreshServiceSelects();
-            getGpsLocation('serviceGpsStatus', 'service');
-        }
+        if (pageId === 'service') refreshServiceSelects();
         if (pageId === 'checkin') getGpsLocation('gpsStatus', 'standalone');
         if (pageId === 'syncSettings') updateUnsyncedStats();
-        if (pageId === 'camera') startCamera();
-        else stopCamera();
+        if (pageId === 'camera') {
+            getGpsLocation('cameraGpsStatus', 'service');
+            startCamera();
+        } else {
+            stopCamera();
+        }
     }
 
     async function checkUnsyncedCount() {
@@ -700,11 +701,11 @@
                 }
 
                 gpsBox.innerHTML = `
-                    <strong>📍 位置已取得</strong><br><br>
-                    <div style="display:flex; justify-content:space-between; text-align:left;">
-                        <div><strong>緯度</strong><br>${lat}</div>
-                        <div><strong>經度</strong><br>${lng}</div>
-                        <div><strong>精確度</strong><br>±${accuracy ? accuracy + 'm' : '未知'}</div>
+                    <strong>📍 位置已取得</strong><br>
+                    <div style="display:flex; justify-content:space-between; text-align:left; margin-top:4px;">
+                        <div><strong>緯度:</strong> ${lat}</div>
+                        <div><strong>經度:</strong> ${lng}</div>
+                        <div><strong>精確度:</strong> ±${accuracy ? accuracy + 'm' : '未知'}</div>
                     </div>
                 `;
             },
@@ -796,7 +797,7 @@
 
         try {
             const data = JSON.parse(decodedText);
-            if (data.techName) document.getElementById('serviceTechNameInput').value = data.techName;
+            if (data.techName) document.getElementById('cameraTechNameInput').value = data.techName;
             if (data.site) setSelectValue('siteSelect', data.site);
             if (data.machine) setSelectValue('machineSelect', data.machine);
             if (data.machineId) setSelectValue('machineIdSelect', data.machineId);
@@ -878,7 +879,7 @@
     function goToConfirmPage() {
         if (tempPhotoArray.length === 0) { alert('請至少拍攝一張照片！'); return; }
 
-        const techName = document.getElementById('serviceTechNameInput').value.trim() || '未填寫';
+        const techName = document.getElementById('cameraTechNameInput').value.trim() || '未填寫';
         const gpsText = serviceGpsData 
             ? `${serviceGpsData.latitude.toFixed(4)}, ${serviceGpsData.longitude.toFixed(4)} (±${serviceGpsData.accuracy ? serviceGpsData.accuracy.toFixed(1) + 'm' : '未知'})` 
             : '未取得定位';
@@ -926,7 +927,7 @@
     }
 
     async function confirmAndUploadPhotos() {
-        const techName = document.getElementById('serviceTechNameInput').value.trim() || "未填寫";
+        const techName = document.getElementById('cameraTechNameInput').value.trim() || "未填寫";
         const site = document.getElementById('siteSelect').value;
         const machine = document.getElementById('machineSelect').value;
         const machineId = document.getElementById('machineIdSelect').value;
@@ -1004,15 +1005,13 @@
         const hasEmbedParams = techName || site || machine || machineId || workOrder;
 
         if (hasEmbedParams) {
-            if (techName) document.getElementById('serviceTechNameInput').value = techName;
+            if (techName) document.getElementById('cameraTechNameInput').value = techName;
             if (site) setSelectValue('siteSelect', site);
             if (machine) setSelectValue('machineSelect', machine);
             if (machineId) setSelectValue('machineIdSelect', machineId);
             if (workOrder) document.getElementById('workOrderInput').value = workOrder;
 
-            tempPhotoArray = [];
-            updateCapturedPreview();
-            showPage('camera');
+            prepareAndShowCamera();
         } else {
             showPage('home');
         }
